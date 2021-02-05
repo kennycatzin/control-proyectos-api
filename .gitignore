@@ -1,0 +1,8 @@
+/vendor
+/.idea
+/config
+/bootstrap
+Homestead.json
+Homestead.yaml
+.env
+.phpunit.result.cache
