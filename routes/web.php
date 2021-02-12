@@ -16,14 +16,23 @@ $router->get('/', function () use ($router) {
 });
 
 $router->group(['prefix' => 'api'], function () use ($router) { 
+    $router->post('register', 'UserController@register');
+    $router->post('login', 'UserController@login');
+    $router->get('profile', 'UserController@profile');
+    $router->get('users/{id}', 'UserController@singleUser');
+    $router->get('users', 'UserController@allUsers');
     
 
     $router->group(['prefix' => 'empresa'], function () use ($router) {
         $router->post('store-empresa', 'EmpresaController@storeEmpresa');     
         $router->get('get-listado-empresa/{index}', 'EmpresaController@getListadoEmpresas');   
-        $router->get('get-detalle-empresa/{index}', 'EmpresaController@getDetalleEmpresa');
-        $router->put('baja-empresa', 'EmpresaController@bajaEmpresa');     
-     
+        $router->get('get-detalle-empresa/{id_empresa}', 'EmpresaController@getDetalleEmpresa');
+        $router->put('baja-empresa', 'EmpresaController@bajaEmpresa');  
+        $router->post('busqueda', 'EmpresaController@busquedaPorNombre'); 
+        $router->get('get-item-empresa/{id_empresa}', 'EmpresaController@getEmpresaItem');   
+        $router->get('get-empresas-excel', 'EmpresaController@getEmpresasExcel');   
+
+        
     });
 });
 

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use DB;
+use App\Exports\EmpresasExport;
+use Maatwebsite\Excel\Facades\Excel;
 class EmpresaController extends Controller
 {
    
@@ -36,7 +38,7 @@ class EmpresaController extends Controller
     public function getListadoEmpresas($index){
         try {
             $data = DB::table('empresa')
-            ->select("id_empresa", "nombre_comercial", DB::raw("CONCAT('nombre_participante','apellido_paterno') AS nombre"), "email", "giro_turistico")
+            ->select("id_empresa", "nombre_comercial", DB::raw("CONCAT(nombre_participante,' ', apellido_paterno) AS nombre"), "email", "giro_turistico")
             ->where('activo', true)
             ->skip($index)
             ->take(5)
@@ -71,6 +73,40 @@ class EmpresaController extends Controller
             return $this->crearRespuestaError("Ha ocurrido un problema ". $th->getMessage(). ' '.$th->getLine(), 500);
         }
     }
+    public function busquedaPorNombre(Request $request){
+        try {    
+            $data = DB::table('empresa')
+            ->select("id_empresa", 'activo', "nombre_comercial", DB::raw("CONCAT(nombre_participante,' ', apellido_paterno) AS nombre"), "email", "giro_turistico")
+            ->where('activo', "=", true)
+            ->orWhere('nombre_comercial', 'like', '%'.$request["busqueda"].'%')
+            ->orWhere('razon_social', 'like', '%'.$request["busqueda"].'%')
+            ->orWhere('nombre_participante', 'like', '%'.$request["busqueda"].'%')
+            ->orWhere('apellido_paterno', 'like', '%'.$request["busqueda"].'%')
+            ->take(5)
+            ->get();
+            return $this->crearRespuesta($data, 200);
+        } catch (\Throwable $th) {
+            return $this->crearRespuestaError("Ha ocurrido un problema ". $th->getMessage(). ' '.$th->getLine(), 500);
+        }
+    }
 
-
+    public function getEmpresaItem($id_empresa){
+        try {
+            $data = DB::table('empresa')
+            ->select("id_empresa", "nombre_comercial", DB::raw("CONCAT(nombre_participante,' ', apellido_paterno) AS nombre"), "email", "giro_turistico")
+            ->where('activo', true)
+            ->where('id_empresa', $id_empresa)
+            ->get();
+            return $this->crearRespuesta($data, 200);
+        } catch (\Throwable $th) {
+            return $this->crearRespuestaError("Ha ocurrido un problema ". $th->getMessage(). ' '.$th->getLine(), 500);
+        }
+    }
+    public function getEmpresasExcel(){
+        try {
+            return Excel::download(new EmpresasExport, 'empresas.xlsx');
+        } catch (\Throwable $th) {
+            return $this->crearRespuestaError("Ha ocurrido un problema ". $th->getMessage(). ' '.$th->getLine(), 500);
+        }
+    }
 }
