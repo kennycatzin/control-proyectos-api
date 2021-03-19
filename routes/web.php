@@ -30,9 +30,11 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->put('baja-empresa', 'EmpresaController@bajaEmpresa');  
         $router->post('busqueda', 'EmpresaController@busquedaPorNombre'); 
         $router->get('get-item-empresa/{id_empresa}', 'EmpresaController@getEmpresaItem');   
+        $router->get('get-municipios', 'EmpresaController@getMunicipios');
+        $router->get('get-giros-turisticos', 'EmpresaController@getGirosTuristicos');
         $router->get('get-empresas-excel', 'EmpresaController@getEmpresasExcel');   
-
-        
+        $router->get('get-consultores', 'EmpresaController@getConsultores');  
+        $router->get('get-localidades/{id_municipio}', 'EmpresaController@getLocalidades');  
     });
 });
 

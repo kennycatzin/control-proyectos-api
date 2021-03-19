@@ -24,10 +24,11 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
+       
         //validate incoming request 
         $this->validate($request, [
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users',
+            'name' => 'required|string|unique:users',
+            'email' => 'required|email',
             'password' => 'required|confirmed',
         ]);
 
@@ -58,11 +59,11 @@ class UserController extends Controller
     {
           //validate incoming request 
         $this->validate($request, [
-            'email' => 'required|string',
+            'name' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $credentials = $request->only(['email', 'password']);
+        $credentials = $request->only(['name', 'password']);
 
         if (! $token = Auth::attempt($credentials)) {
             return response()->json(['message' => 'Unauthorized', 'ok' => false], 401);

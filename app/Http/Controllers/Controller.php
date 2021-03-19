@@ -27,18 +27,21 @@ class Controller extends BaseController
         return response()->json(['message'=>$msg, 'ok'=>false], $codigo);
     }
 
-    
+    public function getEnv($nombre){
+        return env($nombre,"");
+    }
     public function getHoraFechaActual(){
         $mytime = Carbon::now();
         return $mytime;
     }
-//     public function enviarCorreoxPlantilla($plantilla,$datosView, $datosCorreo){
-//         Mail::send($plantilla, $datosView, function ($message) use ($datosCorreo) {
-//             $message->from($this->getEnv("CORREO_PLATAFORMA"), 'Ventanilla Digital de Inversiones');
-//             $message->to($datosCorreo["email"], $datosCorreo['nombre']);
-//             $message->subject($datosCorreo['subject']);
-//         });
-//     }
+    public function enviarCorreo($datosView, $datosCorreo){
+        Mail::send('plantilla_correo', $datosView, function ($message) use ($datosCorreo) {
+            $message->from("noreply@notificaciones.yucatan.gob.mx", 'Sitio de certificaciones BUPSY');
+            $message->to($datosCorreo["email"], $datosCorreo['nombre']);
+            $message->cc($datosCorreo["ayuda1"], $datosCorreo['ayuda2']);
+            $message->subject($datosCorreo['subject']);
+        });
+    }
 }
     
     
