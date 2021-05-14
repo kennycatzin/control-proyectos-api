@@ -7,68 +7,98 @@ use Illuminate\Http\Request;
 use DB;
 class UserController extends Controller
 {
-     /**
-     * Instantiate a new UserController instance.
-     *
-     * @return void
-     */
-    //public function __construct()
-    //{
-      //  $this->middleware('auth');
-    //}
-
-    /**
-     * Get the authenticated User.
-     *
-     * @return Response
-     */
     public function register(Request $request)
     {
-       
-        //validate incoming request 
         $this->validate($request, [
             'name' => 'required|string|unique:users',
             'email' => 'required|email',
             'password' => 'required|confirmed',
         ]);
-
         try {
-            // $user = new User;
-            // $user->name = $request->input('name');
-            // $user->email = $request->input('email');
-            // $plainPassword = $request->input('password');
-            // $user->password = app('hash')->make($plainPassword);
-            // $user->save();
-            DB::insert('insert into users (name, email, password, activo,
+            DB::insert('insert into users (name, email, password, tipo, activo,
             fecha_creacion, fecha_modificacion, usuario_creacion, usuario_modificacion)
-            values (?,?,?,?,?,?,?,?)', 
+            values (?,?,?,?,?,?,?,?,?)', 
             [$request->input('name'), $request->input('email'), 
-            app('hash')->make($request->input('password')), true, $this->getHoraFechaActual(), 
+            app('hash')->make($request->input('password')), $request->input('tipo'), true, $this->getHoraFechaActual(), 
             $this->getHoraFechaActual(), $request->input('name'), $request->input('name')]);
-
-            //return successful response
             return response()->json(['ok' => true, 'message' => 'CREATED'], 201);
-
         } catch (\Exception $e) {
             //return error message
             return response()->json(['message' => 'User Registration Failed! '. $e->getMessage().' '.$e->getLine()], 200);
         }
+    }
+    public function getUsuariosPaginado($index){
+        $data = DB::table('users')
+        ->select('*')
+        ->where('activo', true)
+        ->skip($index)
+        ->take(6)
+        ->get();
+        foreach($data as $miData){
+            if($miData->tipo == 1){
+                $miData->activo = "ADMINISTRADOR";
+            }
+            if($miData->tipo == 2){
+                $miData->activo = "USUARIO";
+            }
+        }
 
+        return $this->crearRespuesta($data, 200);
+    }
+    public function busquedaPorNombre(Request $request){
+        try {    
+            $busqueda = $request["buscador"];
+            $data=DB::table('users')
+            ->select('*')
+            ->Where('name', 'LIKE', '%'.$busqueda.'%')
+            ->take(10)
+            ->where('activo', true)
+            ->get();
+            foreach($data as $miData){
+                if($miData->tipo == 1){
+                    $miData->activo = "ADMINISTRADOR";
+                }
+                if($miData->tipo == 2){
+                    $miData->activo = "USUARIO";
+                }
+            }
+            return $this->crearRespuesta($data, 200);
+        } catch (\Throwable $th) {
+            return $this->crearRespuestaError("Ha ocurrido un problema ". $th->getMessage(). ' '.$th->getLine(), 500);
+        }
+    }
+    public function editarUsuario(Request $request){
+        DB::update('update users set name = ?, 
+        email = ?, tipo = ?,
+        usuario_modificacion = ?, fecha_modificacion = ?
+        where id = ?', 
+        [$request["name"], $request["email"], 
+        $request["tipo"], $request["usuario"], $this->getHoraFechaActual(), $request["id"]]);
+        return $this->crearRespuesta("se ha modificado el usuario", 200);
+    }
+    public function deleteUsuario(Request $request){
+        DB::update('update users set activo = false, 
+        usuario_modificacion = ?, fecha_modificacion = ?
+        where id = ?', 
+        [$request["usuario"],  $this->getHoraFechaActual(), $request["id"]]);
+        return $this->crearRespuesta("se ha eliminado el usuario", 200);
     }
     public function login(Request $request)
     {
-          //validate incoming request 
         $this->validate($request, [
             'name' => 'required|string',
             'password' => 'required|string',
         ]);
-
         $credentials = $request->only(['name', 'password']);
-
+        $data=DB::table('users')
+        ->select('*')
+        ->where('activo', true)
+        ->where('name', $request["name"])
+        ->first();
         if (! $token = Auth::attempt($credentials)) {
             return response()->json(['message' => 'Unauthorized', 'ok' => false], 401);
         }
-        return $this->respondWithToken($token);
+        return $this->respondWithToken($token, $data);
     }
 
     /**
